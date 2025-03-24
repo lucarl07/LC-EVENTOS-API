@@ -24,29 +24,38 @@ const server = http.createServer((request, response) => {
         
         let body = "";
 
-        request.on('data', (chunk) => {
-            body += chunk.toString();
-        });
-
-        request.on('end', () => {
-            const newPart = JSON.parse(body)
-            newPart.id = 1 + participants.length;
-            
-            if (newPart.idade >= 16) {
-                participants.push(newPart)
-                console.log('Cadastro realizado com sucesso! \n');
-
-                response.writeHead(201, {"Content-Type": "application/json"})
-                response.end(JSON.stringify(newPart));
-            } else {
-                console.log('Seu cadastro foi recusado. \n')
-                response.writeHead(401, {"Content-Type": "application/json"})
-                response.end(JSON.stringify({
-                    resposta: "Cadastro recusado. \n",
-                    motivo: "Usuário não corresponde a idade mínima exigida (16 anos)."
-                }));
-            }
-        });
+        try {
+            request.on('data', (chunk) => {
+                body += chunk.toString();
+            });
+    
+            request.on('end', () => {
+                const newPart = JSON.parse(body)
+                newPart.id = 1 + participants.length;
+                
+                if (newPart.idade >= 16) {
+                    participants.push(newPart)
+                    console.log('Cadastro realizado com sucesso! \n');
+    
+                    response.writeHead(201, {"Content-Type": "application/json"})
+                    response.end(JSON.stringify(newPart));
+                } else {
+                    console.log('Seu cadastro foi recusado. \n')
+                    response.writeHead(401, {"Content-Type": "application/json"})
+                    response.end(JSON.stringify({
+                        resposta: "Cadastro recusado. \n",
+                        motivo: "Usuário não corresponde a idade mínima exigida (16 anos)."
+                    }));
+                }
+            });
+        } catch (error) {
+            console.log(error)
+            response.writeHead(500, {"Content-Type": "application/json"})
+            response.end(JSON.stringify({
+                resposta: "Cadastro recusado por interno no servidor. \n",
+                motivo: "Erro de código e/ou formatação de dados na criação do usuário."
+            }));
+        }
     } else if (method === 'GET' && url === '/participants') {
         /** Ver participantes:
          * Rota para obter a lista de todos os participantes cadastrados.
